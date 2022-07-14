@@ -1,0 +1,69 @@
+version: '3.7'
+services:
+  line-reports:
+    build: .
+    restart: on-failure
+    container_name: line-reports
+
+    ports:
+      - "5555:5001"
+
+    environment:
+      - "TZ=Europe/Athens"
+
+      - REDIS_SERVER=redis-server
+
+    networks:
+      - line-report-net
+
+    privileged: true
+
+  redis-server:
+    image: redis:6.0.10-alpine
+
+    restart: unless-stopped
+
+    container_name: redis-server
+
+    volumes:
+      - ./config/redis.conf:/redis.conf
+      - redis_data:/data
+
+    networks:
+      - line-report-net
+
+    command: [ "redis-server", "/redis.conf" ]
+
+  line-reporter-generation:
+    build: .
+    restart: on-failure
+
+    container_name: line-reporter-generation
+
+    environment:
+      - REDIS_SERVER=redis-server
+
+    networks:
+      - line-report-net
+
+    privileged: true
+
+    entrypoint: "rq worker --with-scheduler -u redis://redis-server:6379/ report_queue"
+
+  mongodb_container:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+
+    networks:
+      - line-report-net
+networks:
+  line-report-net:
+    name: line-report-net
+
+volumes:
+  redis_data:
+  mongodb_data_container:

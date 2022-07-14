@@ -1,0 +1,8 @@
+.venv/
+venv/
+*.pyc
+*.png
+*.csv
+*.html
+# *.docx
+# *.xlsx

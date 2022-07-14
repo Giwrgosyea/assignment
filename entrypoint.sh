@@ -1,0 +1,1 @@
+gunicorn  -c  app/wsgi_config.py manage:app
